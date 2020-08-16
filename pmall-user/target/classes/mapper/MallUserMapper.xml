@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ink.zfei.user.mapper.MallUserMapper">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="ink.zfei.user.bean.MallUser" id="devMap">
+        <result column="name" property="name" jdbcType="VARCHAR" />
+        <result column="id" property="id" jdbcType="INTEGER" />
+        <result column="mobile" property="mobile" jdbcType="BIGINT" />
+        <result column="create_time" property="createTime" jdbcType="BIGINT" />
+        <result column="update_time" property="updateTime" jdbcType="BIGINT" />
+
+    </resultMap>
+
+
+    <insert id="insert" parameterMap="ink.zfei.user.bean.MallUser" >
+        insert into mall_user (name,mobile,create_time,update_time)values (#{name},#{mobile},#{createTime},#{updateTime},)
+    </insert>
+
+
+
+</mapper>
