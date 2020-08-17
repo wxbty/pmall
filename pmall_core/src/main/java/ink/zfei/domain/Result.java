@@ -3,13 +3,7 @@ package ink.zfei.domain;
 public class Result {
 
 
-    public int getCode() {
-        return code;
-    }
 
-    public void setCode(int code) {
-        this.code = code;
-    }
 
     public String getMessage() {
         return message;
@@ -19,13 +13,31 @@ public class Result {
         this.message = message;
     }
 
-    private int code;
-    private String message;
+    public int getStatus() {
+        return status;
+    }
 
-    public static Result sucess() {
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    private int status;
+    private String message;
+    private String code;
+
+    public static Result success(String code) {
         Result result = new Result();
-        result.setCode(0);
-        result.setMessage("sucess");
+        result.setCode(code);
+        result.setStatus(0);
+        result.setMessage("success");
         return result;
     }
 

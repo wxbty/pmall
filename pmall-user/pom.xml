@@ -11,17 +11,6 @@
 
     <artifactId>pmall-user</artifactId>
 
-    <properties>
-        <!-- 文件拷贝时的编码 -->
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <!-- 编译时的编码 -->
-        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
-        <!-- 编译时的jdk版本 -->
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.compiler.source>1.8</maven.compiler.source>
-    </properties>
-
 
     <dependencies>
 
@@ -35,7 +24,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-
 
         <dependency>
             <groupId>mysql</groupId>
@@ -54,9 +42,6 @@
             <artifactId>redisson-spring-boot-starter</artifactId>
             <version>3.13.2</version>
         </dependency>
-
-
-
 
     </dependencies>
 

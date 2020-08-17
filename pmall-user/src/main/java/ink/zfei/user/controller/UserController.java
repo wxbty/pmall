@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -26,31 +30,53 @@ public class UserController {
     @Resource
     private MallUserService mallUserService;
 
-    private static final String PREX_CODE = "MALL_CODE_";
+    private static final String PREX_CODE_CHECK = "PREX_CODE_CHECK_";
+    private static final String PREX_CODE_SAVE = "PREX_CODE_SAVE_";
+    private static final String PREX_CODE_SUM = "PREX_CODE_SUM_";
 
     @ResponseBody
     @RequestMapping(value = "/passport/mobile/send_register_code", produces = "text/plain;charset=UTF-8")
     public String sendRegisterCode(String mobile) {
 
         //1、验证上次操作是否超过一分钟，查找key=mobile记录，如存在，返回错误码操作太频繁
-        RBucket rBucket = redissonClient.getBucket(PREX_CODE + mobile);
-        if (rBucket.isExists()) {
+        RBucket rBucket_check = redissonClient.getBucket(PREX_CODE_CHECK + mobile);
+        if (rBucket_check.isExists()) {
             Result result = new Result();
-            result.setCode(-100);
+            result.setStatus(-100);
             result.setMessage("操作太频繁");
             return GsonUtil.Obj2JsonStr(result);
-        } else {
-            rBucket.getAndSet(1, 1L, TimeUnit.MINUTES);
         }
-
-
+        //有没有超过5次
+        RBucket rBucket_sum = redissonClient.getBucket(PREX_CODE_SUM + mobile);
+        int sum = 0;
+        if (rBucket_sum.isExists()) {
+            sum = (Integer) rBucket_sum.get();
+            if (sum >= 5) {
+                Result result = new Result();
+                result.setStatus(-101);
+                result.setMessage("今日次数已达上限");
+                return GsonUtil.Obj2JsonStr(result);
+            }
+        }
         //2、生成4位随机验证码
-
+        String code = UUID.randomUUID().toString().substring(0, 4);
         //3、存入redis，有效期30分钟
-
+        RBucket rBucket_save = redissonClient.getBucket(PREX_CODE_SAVE + mobile);
+        rBucket_save.set(code, 30L, TimeUnit.MINUTES);
         //4、redis还需要存入code，有效期30分钟
+        rBucket_check.set(code, 30L, TimeUnit.MINUTES);
 
-        return GsonUtil.Obj2JsonStr(Result.sucess());
+        rBucket_sum.set(sum + 1, 1, TimeUnit.DAYS);
+        return GsonUtil.Obj2JsonStr(Result.success(code));
     }
 
+    public static long getRemainSecondsOneDay(Date currentDate) {
+        LocalDateTime midnight = LocalDateTime.ofInstant(currentDate.toInstant(),
+                ZoneId.systemDefault()).plusDays(1).withHour(0).withMinute(0)
+                .withSecond(0).withNano(0);
+        LocalDateTime currentDateTime = LocalDateTime.ofInstant(currentDate.toInstant(),
+                ZoneId.systemDefault());
+        long seconds = ChronoUnit.MINUTES.between(currentDateTime, midnight);
+        return seconds;
+    }
 }
