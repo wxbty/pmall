@@ -43,7 +43,6 @@ public class UserController {
             rBucket.getAndSet(1, 1L, TimeUnit.MINUTES);
         }
 
-
         //2、生成4位随机验证码
 
         //3、存入redis，有效期30分钟
