@@ -1,6 +1,9 @@
 package ink.zfei.user.controller;
 
 
+import com.alibaba.nacos.api.config.annotation.NacosValue;
+import com.alibaba.nacos.spring.context.annotation.config.NacosPropertySource;
+import com.alibaba.nacos.spring.context.annotation.config.NacosPropertySources;
 import com.google.gson.Gson;
 import ink.zfei.domain.Result;
 import ink.zfei.user.mapper.MallUserMapper;
@@ -20,9 +23,13 @@ import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+@NacosPropertySource(dataId = "ink.zfei.user", autoRefreshed = true)
 @RequestMapping("/user-api/users")
 @Controller
 public class UserController {
+
+    @NacosValue(value = "${code.max:5}", autoRefreshed = true)
+    private int max;
 
     @Resource
     private RedissonClient redissonClient;
@@ -46,12 +53,14 @@ public class UserController {
             result.setMessage("操作太频繁");
             return GsonUtil.Obj2JsonStr(result);
         }
+
+        //System.out.println(max);
         //有没有超过5次
         RBucket rBucket_sum = redissonClient.getBucket(PREX_CODE_SUM + mobile);
         int sum = 0;
         if (rBucket_sum.isExists()) {
             sum = (Integer) rBucket_sum.get();
-            if (sum >= 5) {
+            if (sum >= max) {
                 Result result = new Result();
                 result.setStatus(-101);
                 result.setMessage("今日次数已达上限");
@@ -63,10 +72,11 @@ public class UserController {
         //3、存入redis，有效期30分钟
         RBucket rBucket_save = redissonClient.getBucket(PREX_CODE_SAVE + mobile);
         rBucket_save.set(code, 30L, TimeUnit.MINUTES);
-        //4、redis还需要存入code，有效期30分钟
-        rBucket_check.set(code, 30L, TimeUnit.MINUTES);
+        //4、redis还需要存入code，有效期1分钟
+        rBucket_check.set(code, 1L, TimeUnit.MINUTES);
 
-        rBucket_sum.set(sum + 1, 1, TimeUnit.DAYS);
+//        rBucket_sum.set(sum + 1, 1L, TimeUnit.DAYS);
+        rBucket_sum.set(sum + 1, getRemainSecondsOneDay(new Date()), TimeUnit.MINUTES);
         return GsonUtil.Obj2JsonStr(Result.success(code));
     }
 
