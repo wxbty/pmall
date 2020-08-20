@@ -4,19 +4,24 @@
 
     <!-- 可根据自己的需求，是否要使用 -->
     <resultMap type="ink.zfei.user.bean.MallUser" id="devMap">
-        <result column="name" property="name" jdbcType="VARCHAR" />
-        <result column="id" property="id" jdbcType="INTEGER" />
-        <result column="mobile" property="mobile" jdbcType="BIGINT" />
-        <result column="create_time" property="createTime" jdbcType="BIGINT" />
-        <result column="update_time" property="updateTime" jdbcType="BIGINT" />
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="id" property="id" jdbcType="INTEGER"/>
+        <result column="mobile" property="mobile" jdbcType="BIGINT"/>
+        <result column="create_time" property="createTime" jdbcType="BIGINT"/>
+        <result column="update_time" property="updateTime" jdbcType="BIGINT"/>
 
     </resultMap>
 
 
-    <insert id="insert" parameterMap="ink.zfei.user.bean.MallUser" >
-        insert into mall_user (name,mobile,create_time,update_time)values (#{name},#{mobile},#{createTime},#{updateTime},)
+    <insert id="insert" parameterType="ink.zfei.user.bean.MallUser">
+        insert into mall_user (mobile,create_time,update_time)values (#{mobile},#{createTime},#{updateTime})
     </insert>
 
+    <select id="select" parameterType="ink.zfei.user.bean.MallUser" resultType="java.lang.String">
+        select create_time from mall_user where mobile=#{mobile}
+    </select>
 
-
+    <update id="update" parameterType="ink.zfei.user.bean.MallUser">
+        update mall_user set update_time=#{updateTime} where mobile=#{mobile}
+    </update>
 </mapper>

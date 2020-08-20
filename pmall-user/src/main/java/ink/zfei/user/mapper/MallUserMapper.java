@@ -8,4 +8,7 @@ public interface MallUserMapper {
 
     int insert(MallUser mallUser);
 
+    String select(MallUser mallUser);
+
+    int update(MallUser mallUser);
 }

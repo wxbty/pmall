@@ -6,6 +6,7 @@ import com.alibaba.nacos.spring.context.annotation.config.NacosPropertySource;
 import com.alibaba.nacos.spring.context.annotation.config.NacosPropertySources;
 import com.google.gson.Gson;
 import ink.zfei.domain.Result;
+import ink.zfei.user.bean.MallUser;
 import ink.zfei.user.mapper.MallUserMapper;
 import ink.zfei.user.service.MallUserService;
 import ink.zfei.util.GsonUtil;
@@ -34,6 +35,8 @@ public class UserController {
     @Resource
     private RedissonClient redissonClient;
 
+    @Resource
+    private MallUserMapper mallUserMapper;
     @Resource
     private MallUserService mallUserService;
 
@@ -79,6 +82,94 @@ public class UserController {
         rBucket_sum.set(sum + 1, getRemainSecondsOneDay(new Date()), TimeUnit.MINUTES);
         return GsonUtil.Obj2JsonStr(Result.success(code));
     }
+
+    @ResponseBody
+    @RequestMapping(value = "/passport/mobile/register", produces = "text/plain;charset=UTF-8")
+    public String regist(String mobile, String code) {
+        if (code == null || code.length() != 4) {
+            Result result = new Result();
+            result.setStatus(-102);
+            result.setMessage("验证码格式错误");
+            return GsonUtil.Obj2JsonStr(result);
+        }
+        RBucket rBucket_save = redissonClient.getBucket(PREX_CODE_SAVE + mobile);
+        if (!rBucket_save.isExists()) {
+            Result result = new Result();
+            result.setStatus(-103);
+            result.setMessage("请重新发送验证码");
+            return GsonUtil.Obj2JsonStr(result);
+        }
+        String password = (String) rBucket_save.get();
+        if (!password.equals(code)) {
+            Result result = new Result();
+            result.setStatus(-104);
+            result.setMessage("验证码错误");
+            return GsonUtil.Obj2JsonStr(result);
+        }
+        MallUser mallUser = new MallUser();
+        mallUser.setMobile(mobile);
+        //判断手机号是否已注册
+        if (mallUserMapper.select(mallUser) == null) {
+            //注册表里插入
+            mallUser.setCreateTime(System.currentTimeMillis());
+            mallUser.setUpdateTime(System.currentTimeMillis());
+            mallUserMapper.insert(mallUser);
+        }
+//        else {
+//            //更新update_time
+//            mallUser.setUpdateTime(System.currentTimeMillis());
+//            mallUserMapper.update(mallUser);
+//        }
+        else {
+            Result result = new Result();
+            result.setStatus(-105);
+            result.setMessage("手机号已注册");
+            return GsonUtil.Obj2JsonStr(result);
+        }
+        //插入操作表
+
+
+        return GsonUtil.Obj2JsonStr(mallUser);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/passport/mobile/login", produces = "text/plain;charset=UTF-8")
+    public String login(String mobile, String code) {
+        if (code == null || code.length() != 4) {
+            Result result = new Result();
+            result.setStatus(-102);
+            result.setMessage("验证码格式错误");
+            return GsonUtil.Obj2JsonStr(result);
+        }
+        RBucket rBucket_save = redissonClient.getBucket(PREX_CODE_SAVE + mobile);
+        if (!rBucket_save.isExists()) {
+            Result result = new Result();
+            result.setStatus(-103);
+            result.setMessage("请重新发送验证码");
+            return GsonUtil.Obj2JsonStr(result);
+        }
+        String password = (String) rBucket_save.get();
+        if (!password.equals(code)) {
+            Result result = new Result();
+            result.setStatus(-104);
+            result.setMessage("验证码错误");
+            return GsonUtil.Obj2JsonStr(result);
+        }
+        MallUser mallUser = new MallUser();
+        mallUser.setMobile(mobile);
+        //判断手机号是否已注册
+        if (mallUserMapper.select(mallUser) == null) {
+            Result result = new Result();
+            result.setStatus(-105);
+            result.setMessage("手机号未注册");
+            return GsonUtil.Obj2JsonStr(result);
+        }
+        //操作表插入
+
+
+        return GsonUtil.Obj2JsonStr(mallUser);
+    }
+
 
     public static long getRemainSecondsOneDay(Date currentDate) {
         LocalDateTime midnight = LocalDateTime.ofInstant(currentDate.toInstant(),
