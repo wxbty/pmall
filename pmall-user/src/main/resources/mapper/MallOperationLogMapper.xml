@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ink.zfei.user.mapper.MallOperationLogMapper">
+  <resultMap id="BaseResultMap" type="ink.zfei.user.bean.MallOperationLog">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="method_name" jdbcType="VARCHAR" property="methodName" />
+    <result column="create_time" jdbcType="BIGINT" property="createTime" />
+    <result column="uid" jdbcType="BIGINT" property="uid" />
+    <result column="param" jdbcType="VARCHAR" property="param" />
+    <result column="result" jdbcType="VARCHAR" property="result" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, method_name, create_time, uid, param, result
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from mall_operation_log
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from mall_operation_log
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="ink.zfei.user.bean.MallOperationLog">
+    insert into mall_operation_log (id, method_name, create_time, 
+      uid, param, result)
+    values (#{id,jdbcType=BIGINT}, #{methodName,jdbcType=VARCHAR}, #{createTime,jdbcType=BIGINT}, 
+      #{uid,jdbcType=BIGINT}, #{param,jdbcType=VARCHAR}, #{result,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="ink.zfei.user.bean.MallOperationLog">
+    insert into mall_operation_log
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="methodName != null">
+        method_name,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="uid != null">
+        uid,
+      </if>
+      <if test="param != null">
+        param,
+      </if>
+      <if test="result != null">
+        result,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="methodName != null">
+        #{methodName,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="uid != null">
+        #{uid,jdbcType=BIGINT},
+      </if>
+      <if test="param != null">
+        #{param,jdbcType=VARCHAR},
+      </if>
+      <if test="result != null">
+        #{result,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="ink.zfei.user.bean.MallOperationLog">
+    update mall_operation_log
+    <set>
+      <if test="methodName != null">
+        method_name = #{methodName,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="uid != null">
+        uid = #{uid,jdbcType=BIGINT},
+      </if>
+      <if test="param != null">
+        param = #{param,jdbcType=VARCHAR},
+      </if>
+      <if test="result != null">
+        result = #{result,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="ink.zfei.user.bean.MallOperationLog">
+    update mall_operation_log
+    set method_name = #{methodName,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT},
+      uid = #{uid,jdbcType=BIGINT},
+      param = #{param,jdbcType=VARCHAR},
+      result = #{result,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

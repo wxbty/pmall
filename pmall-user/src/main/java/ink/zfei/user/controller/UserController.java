@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -33,6 +34,9 @@ public class UserController {
     private int max;
 
     @Resource
+    private HttpSession session;
+
+    @Resource
     private RedissonClient redissonClient;
 
     @Resource
@@ -43,6 +47,15 @@ public class UserController {
     private static final String PREX_CODE_CHECK = "PREX_CODE_CHECK_";
     private static final String PREX_CODE_SAVE = "PREX_CODE_SAVE_";
     private static final String PREX_CODE_SUM = "PREX_CODE_SUM_";
+
+    @ResponseBody
+    @RequestMapping(value = "/index", produces = "text/plain;charset=UTF-8")
+    public String index(String mobile) {
+        if ("123".equals(mobile)) {
+            throw new RuntimeException("手机号码不对");
+        }
+        return GsonUtil.Obj2JsonStr(Result.success());
+    }
 
     @ResponseBody
     @RequestMapping(value = "/passport/mobile/send_register_code", produces = "text/plain;charset=UTF-8")
@@ -80,7 +93,7 @@ public class UserController {
 
 //        rBucket_sum.set(sum + 1, 1L, TimeUnit.DAYS);
         rBucket_sum.set(sum + 1, getRemainSecondsOneDay(new Date()), TimeUnit.MINUTES);
-        return GsonUtil.Obj2JsonStr(Result.success(code));
+        return GsonUtil.Obj2JsonStr(Result.success());
     }
 
     @ResponseBody
@@ -135,6 +148,8 @@ public class UserController {
     @ResponseBody
     @RequestMapping(value = "/passport/mobile/login", produces = "text/plain;charset=UTF-8")
     public String login(String mobile, String code) {
+        session.setAttribute("mobile", mobile);
+
         if (code == null || code.length() != 4) {
             Result result = new Result();
             result.setStatus(-102);

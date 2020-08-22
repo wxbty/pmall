@@ -33,12 +33,18 @@ public class Result {
     private String message;
     private String code;
 
-    public static Result success(String code) {
+    public static Result success() {
         Result result = new Result();
-        result.setCode(code);
+        result.setCode("200");
         result.setStatus(0);
         result.setMessage("success");
         return result;
     }
-
+    public static Result failed(String code) {
+        Result result = new Result();
+        result.setCode(code);
+        result.setStatus(0);
+        result.setMessage("failed");
+        return result;
+    }
 }
