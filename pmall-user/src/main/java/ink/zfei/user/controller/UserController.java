@@ -6,6 +6,7 @@ import com.alibaba.nacos.spring.context.annotation.config.NacosPropertySource;
 import com.alibaba.nacos.spring.context.annotation.config.NacosPropertySources;
 import com.google.gson.Gson;
 import ink.zfei.domain.Result;
+import ink.zfei.user.Auth;
 import ink.zfei.user.bean.MallUser;
 import ink.zfei.user.mapper.MallUserMapper;
 import ink.zfei.user.service.MallUserService;
@@ -48,9 +49,21 @@ public class UserController {
     private static final String PREX_CODE_SAVE = "PREX_CODE_SAVE_";
     private static final String PREX_CODE_SUM = "PREX_CODE_SUM_";
 
+    @Auth
     @ResponseBody
     @RequestMapping(value = "/index", produces = "text/plain;charset=UTF-8")
     public String index(String mobile) {
+        //用户信息
+        MallUser mallUser = new MallUser();
+        mallUser.setMobile(mobile);
+        Object result = mallUserMapper.select(mallUser);
+
+        return GsonUtil.Obj2JsonStr(result);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/info", produces = "text/plain;charset=UTF-8")
+    public String info(String mobile) {
         if ("123".equals(mobile)) {
             throw new RuntimeException("手机号码不对");
         }

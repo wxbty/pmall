@@ -3,7 +3,7 @@
 <mapper namespace="ink.zfei.user.mapper.MallUserMapper">
 
     <!-- 可根据自己的需求，是否要使用 -->
-    <resultMap type="ink.zfei.user.bean.MallUser" id="devMap">
+    <resultMap type="ink.zfei.user.bean.MallUser" id="mallUser">
         <result column="name" property="name" jdbcType="VARCHAR"/>
         <result column="id" property="id" jdbcType="INTEGER"/>
         <result column="mobile" property="mobile" jdbcType="BIGINT"/>
@@ -17,8 +17,8 @@
         insert into mall_user (mobile,create_time,update_time)values (#{mobile},#{createTime},#{updateTime})
     </insert>
 
-    <select id="select" parameterType="ink.zfei.user.bean.MallUser" resultType="java.lang.String">
-        select create_time from mall_user where mobile=#{mobile}
+    <select id="select" parameterType="ink.zfei.user.bean.MallUser" resultType="mallUser">
+        select * from mall_user where mobile=#{mobile}
     </select>
 
     <update id="update" parameterType="ink.zfei.user.bean.MallUser">
