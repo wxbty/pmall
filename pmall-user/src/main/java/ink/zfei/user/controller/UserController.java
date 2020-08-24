@@ -1,9 +1,11 @@
 package ink.zfei.user.controller;
 
 
+import cn.hutool.crypto.SecureUtil;
 import com.alibaba.nacos.api.config.annotation.NacosValue;
 import com.alibaba.nacos.spring.context.annotation.config.NacosPropertySource;
 import com.alibaba.nacos.spring.context.annotation.config.NacosPropertySources;
+import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import ink.zfei.domain.Result;
 import ink.zfei.user.Auth;
@@ -23,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -207,5 +210,26 @@ public class UserController {
                 ZoneId.systemDefault());
         long seconds = ChronoUnit.MINUTES.between(currentDateTime, midnight);
         return seconds;
+    }
+
+    @Auth(sign = true)
+    @ResponseBody
+    @RequestMapping(value = "/out/open", produces = "text/plain;charset=UTF-8")
+    public String outopen(String mobile, String code) {
+
+
+        return " GsonUtil.Obj2JsonStr(mallUser)";
+    }
+
+
+    public static void main(String[] args) {
+        Map<String, String> params = Maps.newHashMap();
+        params.put("appId", "lc91fa6e24ff4b4e99");
+        params.put("uid", "10023");
+        params.put("mobile", "1235654444");
+        String appSecret = "12459ac547434b3ea83db5e6d56789";
+        String sign = SecureUtil.signParamsMd5(params,appSecret);
+        System.out.println(sign);
+//        params.put("sign",sign);
     }
 }

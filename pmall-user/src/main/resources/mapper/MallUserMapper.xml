@@ -17,7 +17,7 @@
         insert into mall_user (mobile,create_time,update_time)values (#{mobile},#{createTime},#{updateTime})
     </insert>
 
-    <select id="select" parameterType="ink.zfei.user.bean.MallUser" resultType="mallUser">
+    <select id="select" parameterType="ink.zfei.user.bean.MallUser" resultMap="mallUser">
         select * from mall_user where mobile=#{mobile}
     </select>
 
