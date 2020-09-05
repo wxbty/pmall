@@ -4,14 +4,16 @@ package ink.zfei.user.controller;
 import cn.hutool.crypto.SecureUtil;
 import com.alibaba.nacos.api.config.annotation.NacosValue;
 import com.alibaba.nacos.spring.context.annotation.config.NacosPropertySource;
-import com.alibaba.nacos.spring.context.annotation.config.NacosPropertySources;
 import com.google.common.collect.Maps;
-import com.google.gson.Gson;
-import ink.zfei.domain.Result;
 import ink.zfei.user.Auth;
 import ink.zfei.user.bean.MallUser;
 import ink.zfei.user.mapper.MallUserMapper;
 import ink.zfei.user.service.MallUserService;
+import ink.zfei.user.util.LoginContext;
+import ink.zfei.domain.CommonResult;
+import ink.zfei.user.vo.OAuth2AccessTokenBO;
+import ink.zfei.user.vo.UserAuthenticationBO;
+import ink.zfei.user.vo.UsersUserVO;
 import ink.zfei.util.GsonUtil;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
@@ -28,6 +30,8 @@ import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
+import static ink.zfei.domain.CommonResult.success;
 
 @NacosPropertySource(dataId = "ink.zfei.user", autoRefreshed = true)
 @RequestMapping("/user-api/users")
@@ -51,6 +55,7 @@ public class UserController {
     private static final String PREX_CODE_CHECK = "PREX_CODE_CHECK_";
     private static final String PREX_CODE_SAVE = "PREX_CODE_SAVE_";
     private static final String PREX_CODE_SUM = "PREX_CODE_SUM_";
+    public static final String USERINFO = "userInfo";
 
     @Auth
     @ResponseBody
@@ -59,7 +64,7 @@ public class UserController {
         //用户信息
         MallUser mallUser = new MallUser();
         mallUser.setMobile(mobile);
-        Object result = mallUserMapper.select(mallUser);
+        Object result = mallUserMapper.select(mobile);
 
         return GsonUtil.Obj2JsonStr(result);
     }
@@ -101,6 +106,7 @@ public class UserController {
         }
         //2、生成4位随机验证码
         String code = UUID.randomUUID().toString().substring(0, 4);
+        System.out.println("code=" + code);
         //3、存入redis，有效期30分钟
         RBucket rBucket_save = redissonClient.getBucket(PREX_CODE_SAVE + mobile);
         rBucket_save.set(code, 30L, TimeUnit.MINUTES);
@@ -113,52 +119,48 @@ public class UserController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/passport/mobile/register", produces = "text/plain;charset=UTF-8")
-    public String regist(String mobile, String code) {
+    @RequestMapping(value = "/passport/mobile/register", produces = "application/json;charset=UTF-8")
+    public CommonResult<UserAuthenticationBO> registerAndLogin(String mobile, String code) {
         if (code == null || code.length() != 4) {
-            Result result = new Result();
-            result.setStatus(-102);
-            result.setMessage("验证码格式错误");
-            return GsonUtil.Obj2JsonStr(result);
+            return CommonResult.error(-102, "验证码格式错误");
         }
         RBucket rBucket_save = redissonClient.getBucket(PREX_CODE_SAVE + mobile);
         if (!rBucket_save.isExists()) {
-            Result result = new Result();
-            result.setStatus(-103);
-            result.setMessage("请重新发送验证码");
-            return GsonUtil.Obj2JsonStr(result);
+            return CommonResult.error(-103, "请重新发送验证码");
         }
         String password = (String) rBucket_save.get();
         if (!password.equals(code)) {
-            Result result = new Result();
-            result.setStatus(-104);
-            result.setMessage("验证码错误");
-            return GsonUtil.Obj2JsonStr(result);
+            return CommonResult.error(-104, "验证码错误");
         }
-        MallUser mallUser = new MallUser();
-        mallUser.setMobile(mobile);
+
         //判断手机号是否已注册
-        if (mallUserMapper.select(mallUser) == null) {
+        MallUser mallUser = mallUserMapper.select(mobile);
+        if (mallUser == null) {
             //注册表里插入
+            mallUser = new MallUser();
+            mallUser.setMobile(mobile);
+            mallUser.setName(mobile);
             mallUser.setCreateTime(System.currentTimeMillis());
             mallUser.setUpdateTime(System.currentTimeMillis());
+            String ram = UUID.randomUUID().toString();
+            mallUser.setAccessToken(ram.substring(0,4)+ram.substring(5,8));
             mallUserMapper.insert(mallUser);
-        }
-//        else {
-//            //更新update_time
-//            mallUser.setUpdateTime(System.currentTimeMillis());
-//            mallUserMapper.update(mallUser);
-//        }
-        else {
-            Result result = new Result();
-            result.setStatus(-105);
-            result.setMessage("手机号已注册");
-            return GsonUtil.Obj2JsonStr(result);
         }
         //插入操作表
 
+        OAuth2AccessTokenBO tokenBo = new OAuth2AccessTokenBO();
+        tokenBo.setAccessToken(mallUser.getAccessToken());
+        tokenBo.setRefreshToken("refresh_token1");
+        tokenBo.setExpiresIn(100000);
 
-        return GsonUtil.Obj2JsonStr(mallUser);
+        UserAuthenticationBO authenticationBO = new UserAuthenticationBO();
+        authenticationBO.setToken(tokenBo);
+        authenticationBO.setId(mallUser.getId());
+        authenticationBO.setNickname(mallUser.getMobile());
+
+        LoginContext.put(authenticationBO);
+
+        return success(authenticationBO);
     }
 
     @ResponseBody
@@ -189,7 +191,7 @@ public class UserController {
         MallUser mallUser = new MallUser();
         mallUser.setMobile(mobile);
         //判断手机号是否已注册
-        if (mallUserMapper.select(mallUser) == null) {
+        if (mallUserMapper.select(mobile) == null) {
             Result result = new Result();
             result.setStatus(-105);
             result.setMessage("手机号未注册");
@@ -228,8 +230,21 @@ public class UserController {
         params.put("uid", "10023");
         params.put("mobile", "1235654444");
         String appSecret = "12459ac547434b3ea83db5e6d56789";
-        String sign = SecureUtil.signParamsMd5(params,appSecret);
+        String sign = SecureUtil.signParamsMd5(params, appSecret);
         System.out.println(sign);
 //        params.put("sign",sign);
+    }
+
+    @Auth
+    @ResponseBody
+    @RequestMapping(value = "/user/info", produces = "application/json;charset=UTF-8")
+    public CommonResult<UsersUserVO> info() {
+        MallUser mallUser = mallUserMapper.select(LoginContext.mobile());
+        UsersUserVO userResult = new UsersUserVO();
+        userResult.setId(mallUser.getId());
+        userResult.setMobile(mallUser.getMobile());
+        userResult.setAvatar("https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1599301985909&di=cbe2d3944388227d6d3b351d8f8cb20d&imgtype=0&src=http%3A%2F%2Fimg.article.pchome.net%2F00%2F25%2F65%2F20%2Fpic_lib%2Fs960x639%2FTiger_3002s960x639.jpg");
+        userResult.setNickname(mallUser.getName());
+        return success(userResult);
     }
 }

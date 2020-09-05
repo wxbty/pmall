@@ -11,6 +11,8 @@
     <modules>
         <module>pmall-user</module>
         <module>pmall_core</module>
+        <module>pmall-promotion</module>
+        <module>pmall-admin</module>
     </modules>
 
     <properties>
@@ -38,12 +40,35 @@
                 <version>2.8.6</version>
             </dependency>
 
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>8.0.17</version>
+            </dependency>
 
+            <dependency>
+                <groupId>ink.zfei</groupId>
+                <artifactId>pmall-core</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
 
+            <dependency>
+                <groupId>com.alibaba.boot</groupId>
+                <artifactId>nacos-config-spring-boot-starter</artifactId>
+                <version>0.2.1</version>
+            </dependency>
 
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson-spring-boot-starter</artifactId>
+                <version>3.13.2</version>
+            </dependency>
 
-
-
+            <dependency>
+                <groupId>org.mybatis.spring.boot</groupId>
+                <artifactId>mybatis-spring-boot-starter</artifactId>
+                <version>2.1.3</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

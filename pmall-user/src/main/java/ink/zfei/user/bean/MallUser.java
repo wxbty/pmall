@@ -12,6 +12,16 @@ public class MallUser implements Serializable {
 
     private String name;
     private String mobile;
+
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    private String accessToken;
     private long createTime;
     private long updateTime;
 

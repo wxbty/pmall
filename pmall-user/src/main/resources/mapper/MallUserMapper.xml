@@ -5,6 +5,7 @@
     <!-- 可根据自己的需求，是否要使用 -->
     <resultMap type="ink.zfei.user.bean.MallUser" id="mallUser">
         <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="access_token" property="accessToken" jdbcType="VARCHAR"/>
         <result column="id" property="id" jdbcType="INTEGER"/>
         <result column="mobile" property="mobile" jdbcType="BIGINT"/>
         <result column="create_time" property="createTime" jdbcType="BIGINT"/>
@@ -14,7 +15,7 @@
 
 
     <insert id="insert" parameterType="ink.zfei.user.bean.MallUser">
-        insert into mall_user (mobile,create_time,update_time)values (#{mobile},#{createTime},#{updateTime})
+        insert into mall_user (mobile,access_token,create_time,update_time)values (#{mobile},#{accessToken},#{createTime},#{updateTime})
     </insert>
 
     <select id="select" parameterType="ink.zfei.user.bean.MallUser" resultMap="mallUser">

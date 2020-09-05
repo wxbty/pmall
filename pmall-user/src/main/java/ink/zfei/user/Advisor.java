@@ -1,13 +1,10 @@
 package ink.zfei.user;
 
 import cn.hutool.crypto.SecureUtil;
-import cn.hutool.crypto.asymmetric.Sign;
-import cn.hutool.crypto.asymmetric.SignAlgorithm;
-import cn.hutool.crypto.symmetric.SymmetricCrypto;
-import com.google.common.collect.Maps;
-import com.google.gson.Gson;
 import ink.zfei.user.bean.MallOperationLog;
 import ink.zfei.user.mapper.MallOperationLogMapper;
+import ink.zfei.user.util.LoginContext;
+import ink.zfei.user.vo.UserAuthenticationBO;
 import ink.zfei.util.GsonUtil;
 import jodd.util.StringUtil;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -16,16 +13,23 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+
+import static ink.zfei.user.controller.UserController.USERINFO;
 
 @Aspect
 @Component
 public class Advisor {
+
+
     @Resource
     private MallOperationLogMapper logMapper;
 
@@ -49,7 +53,6 @@ public class Advisor {
         try {
             Object param = joinPoint.getArgs();
             paramStr = GsonUtil.Obj2JsonStr(param);
-            System.out.println("around before" + paramStr);
 
             MethodSignature signature = (MethodSignature) joinPoint.getSignature();
             Method mehthod = signature.getMethod();
@@ -78,23 +81,22 @@ public class Advisor {
 
                 } else {
                     //校验session是否存在
-                    String mobile = (String) session.getAttribute("mobile").toString();
+                    String accessToken = obtainAuthorization(request);
 
-                    if (mobile == null) {
-                        throw new RuntimeException("未登录就访问");
+                    UserAuthenticationBO authenticationBO = LoginContext.get(accessToken);
+                    if (authenticationBO == null) {
+                        throw new RuntimeException("未登录");
                     }
+                    LoginContext.localUid.set(authenticationBO.getId());
+                    LoginContext.localMobile.set(authenticationBO.getNickname());
+
                 }
 
             }
-            Object result = joinPoint.proceed();
+            return joinPoint.proceed();
 
-            resultStr = GsonUtil.Obj2JsonStr(result);
-            System.out.println("around after" + resultStr);
-
-            return result;
         } catch (Throwable e) {
             ex = GsonUtil.Obj2JsonStr(e);
-            System.out.println("around exception" + ex);
             //e.printStackTrace();
             throw e;
         } finally {
@@ -119,6 +121,18 @@ public class Advisor {
 
 //            ex = null;
         }
+    }
+
+    public static String obtainAuthorization(HttpServletRequest request) {
+        String authorization = request.getHeader("Authorization");
+        if (!StringUtils.hasText(authorization)) {
+            return null;
+        }
+        int index = authorization.indexOf("Bearer ");
+        if (index == -1) { // 未找到
+            return null;
+        }
+        return authorization.substring(index + 7).trim();
     }
 
     private String getFromDbByAppId(String appId) {

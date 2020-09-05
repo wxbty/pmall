@@ -1,8 +1,10 @@
 package ink.zfei.user;
 
-import ink.zfei.user.bean.MallUser;
+import ink.zfei.domain.servlet.CorsFilter;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -12,7 +14,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 @SpringBootApplication
 @EnableWebMvc
@@ -24,6 +25,9 @@ public class App implements WebMvcConfigurer {
         SpringApplication.run(App.class);
 
     }
+
+
+
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -47,6 +51,9 @@ public class App implements WebMvcConfigurer {
             mobileHolder.set(mobile);
             return true;//如果设置为false时，被请求时，拦截器执行到此处将不会继续操作
             //如果设置为true时，请求将会继续执行后面的操作
+
+
+
         }
     }
 }
