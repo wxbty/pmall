@@ -71,24 +71,21 @@ public class UserController {
 
     @ResponseBody
     @RequestMapping(value = "/info", produces = "text/plain;charset=UTF-8")
-    public String info(String mobile) {
+    public CommonResult<String> info(String mobile) {
         if ("123".equals(mobile)) {
             throw new RuntimeException("手机号码不对");
         }
-        return GsonUtil.Obj2JsonStr(Result.success());
+        return success("sucess");
     }
 
     @ResponseBody
     @RequestMapping(value = "/passport/mobile/send_register_code", produces = "text/plain;charset=UTF-8")
-    public String sendRegisterCode(String mobile) {
+    public CommonResult<String> sendRegisterCode(String mobile) {
 
         //1、验证上次操作是否超过一分钟，查找key=mobile记录，如存在，返回错误码操作太频繁
         RBucket rBucket_check = redissonClient.getBucket(PREX_CODE_CHECK + mobile);
         if (rBucket_check.isExists()) {
-            Result result = new Result();
-            result.setStatus(-100);
-            result.setMessage("操作太频繁");
-            return GsonUtil.Obj2JsonStr(result);
+            return CommonResult.error(-100,"操作太频繁");
         }
 
         //System.out.println(max);
@@ -98,10 +95,7 @@ public class UserController {
         if (rBucket_sum.isExists()) {
             sum = (Integer) rBucket_sum.get();
             if (sum >= max) {
-                Result result = new Result();
-                result.setStatus(-101);
-                result.setMessage("今日次数已达上限");
-                return GsonUtil.Obj2JsonStr(result);
+                return CommonResult.error(-100,"今日次数已达上限");
             }
         }
         //2、生成4位随机验证码
@@ -115,7 +109,7 @@ public class UserController {
 
 //        rBucket_sum.set(sum + 1, 1L, TimeUnit.DAYS);
         rBucket_sum.set(sum + 1, getRemainSecondsOneDay(new Date()), TimeUnit.MINUTES);
-        return GsonUtil.Obj2JsonStr(Result.success());
+        return CommonResult.success("sucess");
     }
 
     @ResponseBody
@@ -165,42 +159,30 @@ public class UserController {
 
     @ResponseBody
     @RequestMapping(value = "/passport/mobile/login", produces = "text/plain;charset=UTF-8")
-    public String login(String mobile, String code) {
+    public CommonResult<String> login(String mobile, String code) {
         session.setAttribute("mobile", mobile);
 
         if (code == null || code.length() != 4) {
-            Result result = new Result();
-            result.setStatus(-102);
-            result.setMessage("验证码格式错误");
-            return GsonUtil.Obj2JsonStr(result);
+            return CommonResult.error(-102,"验证码格式错误");
         }
         RBucket rBucket_save = redissonClient.getBucket(PREX_CODE_SAVE + mobile);
         if (!rBucket_save.isExists()) {
-            Result result = new Result();
-            result.setStatus(-103);
-            result.setMessage("请重新发送验证码");
-            return GsonUtil.Obj2JsonStr(result);
+            return CommonResult.error(-103,"请重新发送验证码");
         }
         String password = (String) rBucket_save.get();
         if (!password.equals(code)) {
-            Result result = new Result();
-            result.setStatus(-104);
-            result.setMessage("验证码错误");
-            return GsonUtil.Obj2JsonStr(result);
+            return CommonResult.error(-104,"验证码错误");
         }
         MallUser mallUser = new MallUser();
         mallUser.setMobile(mobile);
         //判断手机号是否已注册
         if (mallUserMapper.select(mobile) == null) {
-            Result result = new Result();
-            result.setStatus(-105);
-            result.setMessage("手机号未注册");
-            return GsonUtil.Obj2JsonStr(result);
+            return CommonResult.error(-105,"手机号未注册");
         }
         //操作表插入
 
 
-        return GsonUtil.Obj2JsonStr(mallUser);
+        return success("sucess");
     }
 
 
