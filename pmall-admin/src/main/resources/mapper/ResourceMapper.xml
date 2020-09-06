@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="admin.mapper.ResourceMapper">
+  <resultMap id="BaseResultMap" type="admin.bean.Resource">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="type" jdbcType="INTEGER" property="type" />
+    <result column="sort" jdbcType="INTEGER" property="sort" />
+    <result column="display_name" jdbcType="VARCHAR" property="displayName" />
+    <result column="pid" jdbcType="INTEGER" property="pid" />
+    <result column="handler" jdbcType="VARCHAR" property="handler" />
+    <result column="icon" jdbcType="VARCHAR" property="icon" />
+    <result column="permissions" jdbcType="VARCHAR" property="permissions" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="deleted" jdbcType="BIT" property="deleted" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, type, sort, display_name, pid, handler, icon, permissions, create_time, update_time, 
+    deleted
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from resource
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from resource
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="admin.bean.Resource">
+    insert into resource (id, type, sort, 
+      display_name, pid, handler, 
+      icon, permissions, create_time, 
+      update_time, deleted)
+    values (#{id,jdbcType=INTEGER}, #{type,jdbcType=INTEGER}, #{sort,jdbcType=INTEGER}, 
+      #{displayName,jdbcType=VARCHAR}, #{pid,jdbcType=INTEGER}, #{handler,jdbcType=VARCHAR}, 
+      #{icon,jdbcType=VARCHAR}, #{permissions,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{deleted,jdbcType=BIT})
+  </insert>
+  <insert id="insertSelective" parameterType="admin.bean.Resource">
+    insert into resource
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="type != null">
+        type,
+      </if>
+      <if test="sort != null">
+        sort,
+      </if>
+      <if test="displayName != null">
+        display_name,
+      </if>
+      <if test="pid != null">
+        pid,
+      </if>
+      <if test="handler != null">
+        handler,
+      </if>
+      <if test="icon != null">
+        icon,
+      </if>
+      <if test="permissions != null">
+        permissions,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="deleted != null">
+        deleted,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=INTEGER},
+      </if>
+      <if test="sort != null">
+        #{sort,jdbcType=INTEGER},
+      </if>
+      <if test="displayName != null">
+        #{displayName,jdbcType=VARCHAR},
+      </if>
+      <if test="pid != null">
+        #{pid,jdbcType=INTEGER},
+      </if>
+      <if test="handler != null">
+        #{handler,jdbcType=VARCHAR},
+      </if>
+      <if test="icon != null">
+        #{icon,jdbcType=VARCHAR},
+      </if>
+      <if test="permissions != null">
+        #{permissions,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deleted != null">
+        #{deleted,jdbcType=BIT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="admin.bean.Resource">
+    update resource
+    <set>
+      <if test="type != null">
+        type = #{type,jdbcType=INTEGER},
+      </if>
+      <if test="sort != null">
+        sort = #{sort,jdbcType=INTEGER},
+      </if>
+      <if test="displayName != null">
+        display_name = #{displayName,jdbcType=VARCHAR},
+      </if>
+      <if test="pid != null">
+        pid = #{pid,jdbcType=INTEGER},
+      </if>
+      <if test="handler != null">
+        handler = #{handler,jdbcType=VARCHAR},
+      </if>
+      <if test="icon != null">
+        icon = #{icon,jdbcType=VARCHAR},
+      </if>
+      <if test="permissions != null">
+        permissions = #{permissions,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deleted != null">
+        deleted = #{deleted,jdbcType=BIT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="admin.bean.Resource">
+    update resource
+    set type = #{type,jdbcType=INTEGER},
+      sort = #{sort,jdbcType=INTEGER},
+      display_name = #{displayName,jdbcType=VARCHAR},
+      pid = #{pid,jdbcType=INTEGER},
+      handler = #{handler,jdbcType=VARCHAR},
+      icon = #{icon,jdbcType=VARCHAR},
+      permissions = #{permissions,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      deleted = #{deleted,jdbcType=BIT}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>
