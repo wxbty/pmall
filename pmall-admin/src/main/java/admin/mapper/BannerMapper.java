@@ -1,6 +1,5 @@
 package admin.mapper;
 
-
 import admin.bean.Banner;
 import org.apache.ibatis.annotations.Mapper;
 
