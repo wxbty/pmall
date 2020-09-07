@@ -7,6 +7,7 @@ import admin.bean.RoleResource;
 import admin.bo.AdminAuthenticationBO;
 import admin.bo.OAuth2AccessTokenBO;
 import admin.controller.vo.AdminInfo;
+import admin.controller.vo.AdminMenuTreeNodeVO;
 import admin.controller.vo.UsersBannerVO;
 import admin.mapper.AdminMapper;
 import admin.mapper.AdminRoleMapper;
@@ -14,6 +15,8 @@ import admin.mapper.ResourceMapper;
 import admin.mapper.RoleResourceMapper;
 import com.alibaba.nacos.api.config.annotation.NacosValue;
 import com.alibaba.nacos.spring.context.annotation.config.NacosPropertySource;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.Multimaps;
 import ink.zfei.domain.CommonResult;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
@@ -25,10 +28,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ink.zfei.domain.CommonResult.success;
@@ -110,6 +110,74 @@ public class IndexController {
 
         return success(set);
     }
+
+    @ResponseBody
+    @RequestMapping(value = "/admin/menu_resource_tree", produces = "application/json;charset=UTF-8")
+//  @ApiOperation(value = "获得当前登陆的管理员拥有的菜单权限", notes = "以树结构返回")
+    public CommonResult<List<AdminMenuTreeNodeVO>> menuResourceTree() {
+        AdminInfo adminInfo = (AdminInfo) session.getAttribute(USER_INFO);
+        List<AdminMenuTreeNodeVO> adminMenuTreeNodeVOList = new ArrayList<>();
+        List<AdminMenuTreeNodeVO> resultList = new ArrayList<>();
+        if (adminInfo.getAdminRole() != null) {
+            int roleId = adminInfo.getAdminRole().getRoleId();
+            List<RoleResource> list = roleResourceMapper.selectByRoleId(roleId);
+            //拥有的所有resourceID
+            List<Integer> ids = list.stream().map(RoleResource::getResourceId).collect(Collectors.toList());
+            List<admin.bean.Resource> resourceList = ids.stream().map(id -> resourceMapper.selectByPrimaryKey(id)).collect(Collectors.toList());
+
+            for (admin.bean.Resource resource : resourceList) {
+                AdminMenuTreeNodeVO adminMenuTreeNodeVO = new AdminMenuTreeNodeVO();
+                adminMenuTreeNodeVO.setId(resource.getId());
+                adminMenuTreeNodeVO.setDisplayName(resource.getDisplayName());
+                adminMenuTreeNodeVO.setHandler(resource.getHandler());
+                adminMenuTreeNodeVO.setPid(resource.getPid());
+                adminMenuTreeNodeVO.setSort(resource.getSort());
+                adminMenuTreeNodeVO.setChildren(new ArrayList<>());
+
+                adminMenuTreeNodeVOList.add(adminMenuTreeNodeVO);
+            }
+            //
+            adminMenuTreeNodeVOList.sort(Comparator.comparingInt(AdminMenuTreeNodeVO::getSort));
+
+            for (AdminMenuTreeNodeVO adminMenuTreeNodeVO : adminMenuTreeNodeVOList) {
+                for (AdminMenuTreeNodeVO adminMenuTreeNodeVO2 : adminMenuTreeNodeVOList) {
+                    if (adminMenuTreeNodeVO.getId().equals(adminMenuTreeNodeVO2.getId())) {
+                        continue;
+                    }
+                    if (adminMenuTreeNodeVO.getPid().equals(adminMenuTreeNodeVO2.getId())) {
+                        adminMenuTreeNodeVO2.getChildren().add(adminMenuTreeNodeVO);
+                    }
+                }
+            }
+
+            for (AdminMenuTreeNodeVO adminMenuTreeNodeVO : adminMenuTreeNodeVOList) {
+                if (adminMenuTreeNodeVO.getPid().equals(0)) {
+                    resultList.add(adminMenuTreeNodeVO);
+                }
+            }
+        }
+
+        return success(resultList);
+    }
+
+
+//    @ResponseBody
+//    @RequestMapping(value = "/data_dict/tree", produces = "application/json;charset=UTF-8")
+////    @ApiOperation(value = "数据字典树结构", notes = "该接口返回的信息更为精简。一般用于前端缓存数据字典到本地。")
+//    public CommonResult<List<DataDictEnumVO>> tree() {
+//        // 查询数据字典全列表
+//        List<DataDictBO> dataDicts = dataDictService.selectDataDictList();
+//        // 构建基于 enumValue 聚合的 Multimap
+//        ImmutableListMultimap<String, DataDictBO> dataDictMap = Multimaps.index(dataDicts, DataDictBO::getEnumValue); // KEY 是 enumValue ，VALUE 是 DataDictBO 数组
+//        // 构建返回结果
+//        List<DataDictEnumVO> dataDictEnumVOs = new ArrayList<>(dataDictMap.size());
+//        dataDictMap.keys().forEach(enumValue -> {
+//            DataDictEnumVO dataDictEnumVO = new DataDictEnumVO().setEnumValue(enumValue)
+//                    .setValues(DataDictConvert.INSTANCE.convert2(dataDictMap.get(enumValue)));
+//            dataDictEnumVOs.add(dataDictEnumVO);
+//        });
+//        return success(dataDictEnumVOs);
+//    }
 
     public static void main(String[] args) {
         String password = "123456";

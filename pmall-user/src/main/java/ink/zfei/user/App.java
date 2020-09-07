@@ -37,6 +37,7 @@ public class App implements WebMvcConfigurer {
 
     }
 
+
     class AdminInterceptor implements HandlerInterceptor {
 
         /**
